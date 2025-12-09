@@ -14,5 +14,16 @@
     "language": "react",
     "sourceDirectory": "./frontend"
   },
-  "contracts": {}
+  "contracts": {},
+  "configs": [
+    {
+      "name": "Local LARS",
+      "network": "mainnet",
+      "provider": "LARS",
+      "run": [
+        "backend",
+        "frontend"
+      ]
+    }
+  ]
 }

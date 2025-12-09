@@ -1,0 +1,216 @@
+P2P Medical Sharing
+
+
+Medical Data Sharing 
+
+Source BSVA Case Study Report:
+
+https://bsvassociation-my.sharepoint.com/:w:/g/personal/asgeir_oskarsson_bsvassociation_org/Ea3TsHrgVyVLm0xOTjSasKYBRoADE_OGcy0VwUeum1vaRg?e=Inakmt 
+
+Case study: 
+Healthcare organizations continue to face major challenges in managing and transferring medical files securely. Existing systems often rely on centralized databases that are vulnerable to data leaks, unauthorized access, and manipulation. Patients lack control over how their information is shared, and healthcare providers struggle with inefficient, opaque data exchange processes. These weaknesses expose sensitive medical information to risk and make it difficult to maintain full regulatory compliance. 
+ Together with a local partner in Argentina, the BSV Association developed P2P Medical, a blockchain-based reference implementation that enables secure, transparent, and patient-centric medical file sharing. 
+
+* User-controlled sharing: Patients and healthcare professionals can securely submit, share, and retrieve medical files through a simple browser interface. 
+* Blockchain logging: Every file transaction is recorded and timestamped on the BSV Blockchain, creating a permanent and verifiable audit trail. 
+* Role-based permissions: Access rights are strictly managed so that only authorized users can view or modify files. 
+* Data protection: End-to-end encryption ensures that medical data remains secure both in transit and at rest. 
+* Compliance transparency: The immutable ledger provides cryptographic proof of data access and transfer events. 
+
+This solution delivers clear benefits for multiple stakeholders. Patients gain direct control over their medical records and can decide who accesses them. Healthcare providers can securely exchange verified patient information with other institutions. Insurance companies receive authenticated documentation that simplifies claims processing, while specialists can review reliable records for accurate second opinions. Regulators benefit from immutable audit logs that simplify oversight and ensure data protection compliance. 
+P2P Medical demonstrates a new model for healthcare data exchange, combining privacy, security, and transparency to build trust across the entire medical ecosystem. 
+
+
+1. Problem
+
+Healthcare providers struggle to securely share medical images like X-rays between patients and doctors. Current systems rely on centralized databases vulnerable to breaches and unauthorized access. Patients lack control over their sensitive medical data. There's no transparent audit trail proving who accessed what, creating compliance and trust issues.
+
+
+2. Objective
+
+Build a peer-to-peer medical image sharing application where patients encrypt X-rays in their browser and securely send them to doctors via Message Box. Only recipients with the correct identity key can decrypt images. All transactions are recorded on BSV blockchain for transparent, immutable audit trails.
+
+
+3. High Level Requirements
+
+User Login & Identity:
+
+* Users login using Metanet Desktop wallet
+* System supports two roles: Patient and Doctor
+* Each user has a unique identity key from wallet
+
+Upload Medical Images:
+
+* Patient can drag-and-drop X-ray images to upload
+* System accepts JPEG, PNG, and DICOM file formats
+* Maximum file size: 10MB per image
+
+Encrypt Images:
+
+* Images are encrypted in the patient's browser
+* Encryption happens before any data is sent
+* Each encrypted image gets a unique fingerprint (hash)
+
+Send to Doctor:
+
+* Patient enters doctor's identity key or selects from list
+* Encrypted image is sent to Message Box server
+* Doctor receives notification of new image
+
+Receive and View:
+
+* Doctor checks Message Box for new images
+* Doctor clicks to download encrypted image
+* Image automatically decrypts in doctor's browser
+
+Access Control:
+
+* Only the doctor with the correct key can decrypt
+* Multiple doctors can access if given the same key
+* Messages expire after 90 days (configurable)
+
+Track Everything:
+
+* Every upload is recorded on BSV blockchain
+* Every access is recorded on BSV blockchain
+* Users can view complete history of who accessed what
+
+Security Checks:
+
+* System verifies image wasn't modified during transfer
+* Blockchain confirms all transactions are valid
+* Expired messages are automatically deleted
+
+User Interface:
+
+* Simple, clean design like modern email apps
+* Visual confirmation when images are sent/received
+* Color indicators show success (green) or errors (red)
+
+Storage Options:
+
+* Short-term: Message Box (90 days default)
+* Long-term: UHRP storage (7 years for compliance)
+* Patients choose storage duration when uploading
+
+
+
+
+5. Tech Stack Components
+
+Mandatory Components:
+
+1. Metanet Desktop Wallet
+
+    * Primary authentication mechanism
+    * Identity key management (public/private keypairs)
+    * Signing transactions for blockchain recording
+
+1. BRC-100 Wallet Interface
+
+    * walletClient.getPublicKey() - Get user identity key
+    * walletClient.encrypt() - Encrypt image data
+    * walletClient.decrypt() - Decrypt received images
+    * walletClient.createAction() - Record transactions on blockchain
+    * walletClient.deriveSharedKey() - Generate ECDH shared keys for encryption
+
+1. @bsv/sdk (TypeScript)
+
+    * Transaction building and signing
+    * Cryptographic operations (hashing, key derivation)
+    * BEEF (Binary Efficient Encoding Format) transaction handling
+    * SPV verification utilities
+
+1. Message Box Server
+
+    * Store encrypted images temporarily
+    * Async message delivery to recipients
+    * Peer-to-peer encrypted message transport
+    * Query API for checking new messages
+    * Authentication via identity keys
+
+1. UHRP (Universal Hash Resolution Protocol)
+
+    * Optional: Long-term encrypted storage of medical images
+    * Content-addressed file storage
+    * Generate uhrp:// URLs for file retrieval
+    * Integrate with storage providers for retention
+
+
+Additional Components:
+
+1. Medical Records Overlay Service
+
+    * Topic manager for medical image transactions
+    * Lookup service for audit trail queries
+    * Access log tracking (who accessed what, when)
+
+1. Frontend Framework
+
+    * React or Vue.js for responsive UI
+    * Browser-based Web Crypto API for encryption/decryption
+    * File handling APIs (FileReader, Blob, Canvas for DICOM)
+
+1. Auth Middleware
+
+    * BRC-103/104 mutual authentication over HTTP
+    * Session management via identity keys
+    * Optional: Payment middleware for paid access (BRC-104)
+
+
+
+
+6. Solution Architecture flow:
+
+Process: Patient Uploads & Encrypts X-ray
+1. Patient selects X-ray file in browser
+   ↓
+2. walletClient.getPublicKey() → Get patient identity key
+   ↓
+3. User enters doctor's identity public key (or selects from contacts)
+   ↓
+4. walletClient.deriveSharedKey(doctorPublicKey) → Generate shared encryption key
+   ↓
+5. Web Crypto API: AES-256-GCM encryption in browser using shared key
+   ↓
+6. Generate SHA-256 hash of encrypted image
+   ↓
+7. Create message payload:
+   {
+     encryptedImage: <encrypted_buffer>,
+     contentHash: <sha256_hash>,
+     senderKey: <patient_public_key>,
+     recipientKey: <doctor_public_key>,
+     timestamp: <unix_timestamp>,
+     metadata: { fileType: 'x-ray', bodyPart: 'chest' }
+   }
+   ↓
+8. Send encrypted payload to Message Box Server
+   POST /messages with recipient=doctorPublicKey
+   ↓
+9. walletClient.createAction() → Record upload transaction on BSV blockchain
+   ↓
+10. Display confirmation with blockchain txid to patient
+
+
+
+Process: Doctor Retrieves & Decrypts X-ray
+
+1. Doctor logs in with Metanet Desktop wallet  
+ ↓
+2. Query Message Box Server for new messages   GET /messages?recipient=doctorPublicKey   
+↓
+3. Retrieve encrypted image payload from Message Box   
+↓
+4. walletClient.deriveSharedKey(patientPublicKey) → Regenerate same shared key   
+↓
+5. Web Crypto API: AES-256-GCM decryption in browser using shared key   
+↓
+6. Verify content hash matches decrypted image   
+↓
+7. Display decrypted X-ray in image viewer   
+↓
+8. walletClient.createAction() → Record access event on BSV blockchain   
+↓
+9. Optional: Mark message as read/viewed in Message Box
+
