@@ -3,10 +3,6 @@ P2P Medical Sharing
 
 Medical Data Sharing 
 
-Source BSVA Case Study Report:
-
-https://bsvassociation-my.sharepoint.com/:w:/g/personal/asgeir_oskarsson_bsvassociation_org/Ea3TsHrgVyVLm0xOTjSasKYBRoADE_OGcy0VwUeum1vaRg?e=Inakmt 
-
 Case study: 
 Healthcare organizations continue to face major challenges in managing and transferring medical files securely. Existing systems often rely on centralized databases that are vulnerable to data leaks, unauthorized access, and manipulation. Patients lack control over how their information is shared, and healthcare providers struggle with inefficient, opaque data exchange processes. These weaknesses expose sensitive medical information to risk and make it difficult to maintain full regulatory compliance. 
  Together with a local partner in Argentina, the BSV Association developed P2P Medical, a blockchain-based reference implementation that enables secure, transparent, and patient-centric medical file sharing. 
